@@ -1,0 +1,50 @@
+services:
+  database:
+    image: postgres:16-alpine
+    container_name: rotik_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: rotik_db
+      POSTGRES_USER: rotik_user
+      POSTGRES_PASSWORD: rotik_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rotik_backend
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      APP_NAME: "Rotik AI Agent Monitor"
+      APP_ENV: local
+      APP_KEY: base64:EOgnDFG/PZTdHOaUTMcgONBeuz2P7Iawco2pgXIZTpA=
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:8000
+      DB_CONNECTION: pgsql
+      DB_HOST: database
+      DB_PORT: 5432
+      DB_DATABASE: rotik_db
+      DB_USERNAME: rotik_user
+      DB_PASSWORD: rotik_password
+    depends_on:
+      - database
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: rotik_frontend
+    restart: always
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
