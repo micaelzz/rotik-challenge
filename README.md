@@ -19,22 +19,28 @@ Durante a análise técnica inicial, foram identificados os principais desafios 
 
 ## 3. Perguntas e Assumptions (Discovery)
 
-Na ausência de esclarecimentos adicionais, foram estabelecidas 5 premissas fundamentais para o desenvolvimento do MVP:
+Na ausência de esclarecimentos adicionais, foram estabelecidas 7 premissas fundamentais para o desenvolvimento do MVP:
 
-1. **Pergunta 1 (Execuções FAILED)**: *Execuções com falha devem consumir a quota do plano?*
-   * **Assumption**: Somente execuções com status `SUCCESS` consomem a quota mensal. Execuções `FAILED` são salvas na tabela `executions` para fins de auditoria e diagnóstico do CS, mas **não** incrementam o contador em `agent_monthly_usages`.
+1. **Pergunta 1 (Escopo do limite)**: *O limite do plano aplica-se por cliente ou por agente individual?*
+   * **Assumption**: O plano define o teto mensal por tipo de agente para a empresa contratante. Esse teto é herdado pelo registro do agente (`Agent.monthly_execution_limit`) no momento do seu cadastro.
 
-2. **Pergunta 2 (Origem e Imutabilidade do Limite)**: *Como é definido o limite mensal no cadastro de um novo agente?*
-   * **Assumption**: O frontend não informa o limite. O backend consulta a tabela `PlanAgentLimit` correspondente ao `AgentType` no `Plan` do `Client` do usuário autenticado. Uma vez copiado para o registro do `Agent`, o limite torna-se estável para o agente.
+2. **Pergunta 2 (Limites por tipo de agente)**: *Todos os tipos de agente compartilham o mesmo limite ou variam por categoria?*
+   * **Assumption**: Cada plano especifica limites distintos para categorias como `SUPPORT`, `SALES` e `GENERAL` através da entidade `PlanAgentLimit`.
 
-3. **Pergunta 3 (Comportamento sob Bloqueio)**: *Qual deve ser a resposta do sistema quando uma execução é tentada em um agente bloqueado ou sem saldo?*
-   * **Assumption**: O endpoint de execução (`POST /api/agents/{agent}/executions`) bloqueia a requisição, marca o agente como `BLOCKED`, emite um log de aviso (`Log::warning`) e retorna HTTP 429 (`EXECUTION_LIMIT_REACHED`).
+3. **Pergunta 3 (Comportamento de execuções FAILED)**: *Execuções com falha consomem a quota mensal do plano?*
+   * **Assumption**: Somente execuções com status `SUCCESS` consomem a quota mensal. Execuções `FAILED` são salvas na tabela `executions` para fins de auditoria e diagnóstico do CS, mas **não** incrementam o consumo em `agent_monthly_usages`.
 
-4. **Pergunta 4 (Rollover de Mês)**: *Como tratar o início de um novo mês para agentes que estouraram o limite no mês anterior?*
-   * **Assumption**: O saldo é controlado de forma agregada pela tabela `agent_monthly_usages` com chave `(agent_id, year, month)`. Na virada do mês, o novo período inicia automaticamente com 0 execuções, desbloqueando a operação sem necessidade de rotinas batch/cron de reset.
+4. **Pergunta 4 (Comportamento ao atingir o limite)**: *Qual deve ser a resposta do sistema quando o limite é atingido?*
+   * **Assumption**: Novas tentativas de execução no endpoint `POST /api/agents/{agent}/executions` retornam `HTTP 429` (`EXECUTION_LIMIT_REACHED`), registram aviso em log (`Log::warning`) e sinalizam o status operacional do agente como `BLOCKED`.
 
-5. **Pergunta 5 (Privacidade e Segurança Multitenant)**: *Como responder a tentativas de acesso a agentes de terceiros?*
-   * **Assumption**: Qualquer tentativa de acessar ou executar um agente pertencente a outro cliente retorna HTTP 404 (`RESOURCE_NOT_FOUND`) em vez de HTTP 403, garantindo o isolamento total e impedindo que usuários mal-intencionados descubram IDs ou a existência de recursos de outros clientes.
+5. **Pergunta 5 (Alteração do plano/limite pós-criação)**: *O que acontece se o limite do plano for alterado após a criação do agente?*
+   * **Assumption**: No MVP, o limite gravado no `Agent` torna-se estável para aquele agente. Ajustes futuros no plano aplicam-se a novos agentes cadastrados ou via atualização manual explícita.
+
+6. **Pergunta 6 (Isolamento entre clientes)**: *Como responder a tentativas de acesso a agentes de outros clientes?*
+   * **Assumption**: Qualquer tentativa de acessar ou executar um agente pertencente a outro cliente retorna `HTTP 404` (`RESOURCE_NOT_FOUND`) em vez de `HTTP 403`, garantindo isolamento multitenant total sem vazamento de metadados.
+
+7. **Pergunta 7 (Exclusão de agentes)**: *A funcionalidade de exclusão de agentes deve estar presente no MVP?*
+   * **Assumption**: A exclusão de agentes foi considerada fora do escopo do MVP para evitar complexidades de integridade referencial com o histórico de execuções e agregados mensais.
 
 ---
 
@@ -54,7 +60,7 @@ Na ausência de esclarecimentos adicionais, foram estabelecidas 5 premissas fund
 
 * Autenticação via Laravel Sanctum (`POST /api/auth/login`).
 * Listagem de agentes com consumo mensal atual e percentual visual (`GET /api/agents`).
-* Consulta de tipos de agente disponíveis no plano (`GET /api/agents/available-types`).
+* Consulta de tipos de agente disponíveis no plano do cliente (`GET /api/agents/available-types`).
 * Cadastro de novos agentes (`POST /api/agents`).
 * Execução concorrencial segura de agentes (`POST /api/agents/{agent}/executions`).
 * Detalhes do agente e histórico paginado (`GET /api/agents/{agent}/executions`).
@@ -101,6 +107,14 @@ rotik-challenge/
 * **Services**: Encapsulam toda a regra de negócio e controle de transações (`AgentService`, `ExecutionService`).
 * **Policies**: Encapsulam a lógica de autorização por cliente (`AgentPolicy`).
 * **Respostas Consistentes de Erro**: Formato unificado contendo `{ "error": { "code": "CÓDIGO", "message": "Mensagem" } }` para códigos 400, 401, 403, 404, 422, 429 e 500.
+
+### 8.1. Endpoints da API
+* `POST /api/auth/login`: Autenticação do usuário e emissão do Bearer Token Sanctum.
+* `GET /api/agents`: Lista os agentes da empresa do usuário logado, incluindo contagem de execuções do mês atual e percentual de uso da quota.
+* `GET /api/agents/available-types`: Retorna os tipos de agentes suportados pelo plano da empresa e seus respectivos limites mensais, permitindo ao frontend exibir contexto claro no formulário de criação.
+* `POST /api/agents`: Cadastra um novo agente atribuindo automaticamente o limite mensal configurado no plano da empresa.
+* `POST /api/agents/{agent}/executions`: Registra a execução de um agente com verificação concorrencial da quota (`SELECT FOR UPDATE`).
+* `GET /api/agents/{agent}/executions`: Traz o histórico paginado de execuções de um agente específico.
 
 ---
 
@@ -184,9 +198,9 @@ erDiagram
 
 ### Por que agregar em `agent_monthly_usage` em vez de contar `executions` a cada requisição?
 
-1. **Performance de Leitura**: Executar `SELECT COUNT(*) FROM executions WHERE agent_id = ? AND executed_at >= ?` em uma aplicação com milhões de execuções exige escaneamento de índices ou tabelas volumosas, causando latência e alto consumo de CPU/I/O no banco.
+1. **Projeção Mensal Performática**: Preferimos uma projeção mensal porque o consumo é um dado operacional consultado frequentemente no dashboard e atualizado a cada execução bem-sucedida. O agregado evita recalcular o consumo a partir do histórico a cada leitura e oferece uma linha naturalmente adequada para controle transacional da quota.
 2. **Atomicidade e Concorrência**: Com a tabela agregada `agent_monthly_usages`, a operação de consumo é reduzida a um `UPDATE agent_monthly_usages SET execution_count = execution_count + 1 WHERE agent_id = ? AND year = ? AND month = ?` protegido por um lock de linha (`lockForUpdate()`), garantindo altíssimo throughput e zero condição de corrida.
-3. **Rollover de Mês sem Cron**: Como a chave primária de uso é `(agent_id, year, month)`, na virada do mês a query automaticamente busca ou cria o registro do novo mês. Agentes bloqueados em agosto não possuem registro para setembro e, portanto, têm quota 0/limit no novo mês, desbloqueando-se automaticamente na primeira execução com sucesso.
+3. **Rollover de Mês sem Cron**: Como a chave primária de uso é `(agent_id, year, month)`, o novo período mensal começa com consumo zero. O agente volta a ser operacionalmente elegível porque a quota do novo período não foi atingida, sem necessidade de processos batch ou cron jobs de reset.
 
 ---
 
@@ -272,13 +286,12 @@ O workflow do **GitHub Actions** em `.github/workflows/ci.yml` valida:
 
 ## 16. Deploy
 
-* **Frontend**: Deploy na Vercel ou Netlify a partir da pasta `frontend/`.
-* **Backend**: Deploy no Render, Railway ou Fly.io a partir da pasta `backend/`.
-* **Banco de Dados**: PostgreSQL gerenciado (Neon Postgres, Supabase, Render Postgres).
+* **Frontend**: Deploy na Vercel a partir da pasta `frontend/`.
+* **Backend**: Deploy no Render a partir da pasta `backend/`.
+* **Banco de Dados**: PostgreSQL gerenciado (Neon Postgres / Render Postgres).
 
 URL de Demonstração Pública:
-* Frontend: `https://rotik-challenge.vercel.app`
-* API: `https://rotik-challenge-api.onrender.com`
+* *As URLs de produção serão adicionadas após a publicação final dos serviços.*
 
 ---
 
