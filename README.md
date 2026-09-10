@@ -17,11 +17,24 @@ Durante a análise técnica inicial, foram identificados os principais desafios 
 
 ---
 
-## 3. Perguntas e Assumptions
+## 3. Perguntas e Assumptions (Discovery)
 
-* **Assumption 1 (Execuções FAILED)**: Somente execuções com status `SUCCESS` consomem quota mensal. Execuções `FAILED` são salvas na tabela `executions` para auditoria, mas **não** incrementam o contador em `agent_monthly_usages`.
-* **Assumption 2 (Origem de Limites)**: O frontend nunca envia o limite de execuções. O limite é obtido pelo backend consultando o `PlanAgentLimit` correspondente ao `AgentType` no `Plan` do `Client` do usuário autenticado. Uma vez copiado para o `Agent`, o limite torna-se estável e imutável retroativamente.
-* **Assumption 3 (Endpoint de Execução)**: `POST /api/agents/{agent}/executions` simula a chamada para rodar uma tarefa do agente. Se a quota estiver disponível, o backend registra `SUCCESS`, incrementa o uso mensal e retorna HTTP 201. Se a quota estivesse cheia, retorna HTTP 429 (`EXECUTION_LIMIT_REACHED`) e atualiza o estado do agente para `BLOCKED`.
+Na ausência de esclarecimentos adicionais, foram estabelecidas 5 premissas fundamentais para o desenvolvimento do MVP:
+
+1. **Pergunta 1 (Execuções FAILED)**: *Execuções com falha devem consumir a quota do plano?*
+   * **Assumption**: Somente execuções com status `SUCCESS` consomem a quota mensal. Execuções `FAILED` são salvas na tabela `executions` para fins de auditoria e diagnóstico do CS, mas **não** incrementam o contador em `agent_monthly_usages`.
+
+2. **Pergunta 2 (Origem e Imutabilidade do Limite)**: *Como é definido o limite mensal no cadastro de um novo agente?*
+   * **Assumption**: O frontend não informa o limite. O backend consulta a tabela `PlanAgentLimit` correspondente ao `AgentType` no `Plan` do `Client` do usuário autenticado. Uma vez copiado para o registro do `Agent`, o limite torna-se estável para o agente.
+
+3. **Pergunta 3 (Comportamento sob Bloqueio)**: *Qual deve ser a resposta do sistema quando uma execução é tentada em um agente bloqueado ou sem saldo?*
+   * **Assumption**: O endpoint de execução (`POST /api/agents/{agent}/executions`) bloqueia a requisição, marca o agente como `BLOCKED`, emite um log de aviso (`Log::warning`) e retorna HTTP 429 (`EXECUTION_LIMIT_REACHED`).
+
+4. **Pergunta 4 (Rollover de Mês)**: *Como tratar o início de um novo mês para agentes que estouraram o limite no mês anterior?*
+   * **Assumption**: O saldo é controlado de forma agregada pela tabela `agent_monthly_usages` com chave `(agent_id, year, month)`. Na virada do mês, o novo período inicia automaticamente com 0 execuções, desbloqueando a operação sem necessidade de rotinas batch/cron de reset.
+
+5. **Pergunta 5 (Privacidade e Segurança Multitenant)**: *Como responder a tentativas de acesso a agentes de terceiros?*
+   * **Assumption**: Qualquer tentativa de acessar ou executar um agente pertencente a outro cliente retorna HTTP 404 (`RESOURCE_NOT_FOUND`) em vez de HTTP 403, garantindo o isolamento total e impedindo que usuários mal-intencionados descubram IDs ou a existência de recursos de outros clientes.
 
 ---
 
@@ -285,24 +298,45 @@ URL de Demonstração Pública:
 
 ---
 
-## 18. Product Mindset
+---
 
-* **Prevenção de Surpresas**: A barra de progresso visual altera sua cor para amarelo ao atingir 80% e para vermelho ao atingir 100% ou ser bloqueada.
-* **Ergonomia e Contexto**: Ao cadastrar um novo agente, o usuário visualiza instantaneamente o limite mensal associado àquele tipo de agente no plano atual da sua empresa, evitando surpresas de quota.
-* **Simplicidade Operacional**: Ações de execução e histórico estão a um clique de distância na mesma tela.
+## 18. Etapa 7 — Mentalidade de Produto
+
+### 1. Essa funcionalidade gera valor real para a Rotik? Para quem exatamente?
+**Sim, gera valor altíssimo e imediato para três públicos principais:**
+* **Time de CS / Suporte**: Elimina o diagnóstico manual via planilhas/logs brutos. O CS identifica em segundos por que um agente parou de responder (estouro de quota vs erro técnico).
+* **Time Comercial / Vendas**: Habilita a detecção proativa de contas prontas para upgrade. Agentes atingindo 80–100% da quota representam oportunidades de expansão de receita (*upsell*) antes que o cliente sinta insatisfação.
+* **Cliente Final**: Recebe clareza e transparência sobre o consumo do seu plano, evitando interrupções inesperadas de serviço.
 
 ---
 
-## 19. Métricas de Sucesso do Produto
-
-1. **Quota Compliance Rate**: % de execuções barradas com sucesso antes de exceder o limite contratado.
-2. **Agent Utilization**: % média de consumo de quota dos agentes ativos por cliente.
-3. **Response Latency**: Tempo de resposta do endpoint de execução sob concorrência (< 50ms).
+### 2. Existiria uma solução mais simples que ainda resolveria o problema central?
+**Sim.** Uma alternativa *No-Code / Low-Cost* inicial seria:
+* **Automação via Cron Job + Webhook no Slack/Email**: Um script diário rodando uma consulta SQL agregada no banco atual que enviasse um alerta no canal do Slack do CS (`#cs-alerts-quota`) sempre que uma conta ultrapassasse 85% do limite.
+* **Por que desenvolvemos o Dashboard?**: Embora o alerta simples no Slack informasse o estouro, ele não oferecia a funcionalidade crítica de cadastramento autônomo de agentes, visualização de histórico de execuções com causa de falha, nem a aplicação estrita de bloqueio em tempo real (`SELECT FOR UPDATE`).
 
 ---
 
-## 20. Monitoramento de Produção
+### 3. Vale a pena a Rotik investir nisso agora, ou há algo mais prioritário?
+**Vale a pena investir no MVP de Monitoramento agora.**
+* **Justificativa**: O custo operacional de diagnosticar falhas manualmente e o risco de churn por agentes que param de responder sem aviso superam o custo de engenharia deste MVP.
+* **Foco no Essencial**: Como o MVP foi modelado com escopo enxuto (foco no consumo e bloqueio sem over-engineering), o investimento é baixo e estanca a perda de tempo do time interno imediatamente.
 
-Em ambiente de produção, recomenda-se:
-* **Logs Estruturados**: O backend registra em log avisos com nível `WARNING` para qualquer bloqueio de limite (`ExecutionLimitReachedException`), contendo `agent_id`, `usage` e `limit`, sem registrar dados sensíveis ou senhas.
-* **APM / Tracing**: Monitoramento de transações de banco com ferramentas como Sentry, Datadog ou Laravel Telescope.
+---
+
+### 4. Como medir se essa funcionalidade está dando certo após o lançamento? (Métricas Concretas)
+1. **Redução no Time-to-Diagnose (MTTR) do CS**: Queda de 80%+ no tempo médio para suporte responder por que um agente parou de responder (meta: < 2 minutos).
+2. **Taxa de Conversão de Upsell Proativo**: % de clientes alertados na faixa amarela (80-100% de uso) que realizaram upgrade de plano em até 14 dias.
+3. **Quota Compliance Rate (% de Execuções Bloqueadas com Sucesso)**: 100% das tentativas excedentes bloqueadas sem estouro de infraestrutura.
+
+---
+
+## 19. Monitoramento de Produção e Observabilidade
+
+Em ambiente de produção, a monitoria recomendada inclui:
+* **Logs Estruturados**: O backend registra logs com nível `WARNING` para qualquer bloqueio de limite (`ExecutionLimitReachedException`), incluindo `agent_id`, `client_id`, `usage` e `limit`.
+* **Métricas da Aplicação (Prometheus / Grafana / Datadog)**:
+  * `rotik_agent_executions_total{status="success|failed|blocked"}`: Taxa por segundo de chamadas de agentes.
+  * `rotik_agent_quota_usage_ratio`: Distribuição do percentual de consumo por cliente.
+  * `rotik_execution_latency_seconds`: Histograma de tempo de resposta da transação de execução (target < 50ms).
+* **Alertas em Tempo Real**: Alerta no Sentry/PagerDuty se a taxa de erros HTTP 500 subir acima de 0.5% ou se houver deadlock nas transações de quota.
