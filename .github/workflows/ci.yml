@@ -85,5 +85,8 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
+      - name: Run Oxlint (Frontend Lint)
+        run: npm run lint
+
       - name: Run TypeScript & Vite Build
         run: npm run build

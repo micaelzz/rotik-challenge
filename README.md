@@ -44,6 +44,20 @@ Na ausência de esclarecimentos adicionais, foram estabelecidas 7 premissas fund
 
 ---
 
+### 3.1. Riscos e Ambiguidades Não Resolvidas no MVP
+
+1. **Latência e Crescimento Contínuo da Tabela de Execuções (`executions`)**:
+   * *Risco*: À medida que milhões de execuções forem gravadas, a tabela `executions` pode crescer rapidamente.
+   * *Decisão*: Para o MVP, o controle de quota é isolado na tabela leve `agent_monthly_usages`. Decidimos não aplicar particionamento de banco ou expurgo de histórico no MVP para manter o escopo enxuto, sendo uma melhoria razoável para a fase pós-lançamento.
+2. **Estabilidade de Limites em Agentes Existentes vs. Mudança de Plano**:
+   * *Risco*: Se um cliente alterar seu plano contratado, agentes criados anteriormente mantêm o limite original salvo na criação.
+   * *Decisão*: Manter o limite imutável no modelo do `Agent` previne distorções retroativas nos relatórios de consumo do CS. Atualizações de limite sob demanda podem ser tratadas em uma funcionalidade administrativa futura.
+3. **Fuso Horário na Virada de Mês**:
+   * *Risco*: Viradas de mês podem ocorrer em horários diferentes dependendo da região do cliente.
+   * *Decisão*: O MVP utiliza o horário padronizado em `UTC` para todas as agregações de ano/mês (`now()->year`, `now()->month`), garantindo coerência transacional global no banco de dados.
+
+---
+
 ## 4. Entidades
 
 1. **Plan**: Define o plano contratado (ex: PRO).
@@ -64,7 +78,9 @@ Na ausência de esclarecimentos adicionais, foram estabelecidas 7 premissas fund
 * Cadastro de novos agentes (`POST /api/agents`).
 * Execução concorrencial segura de agentes (`POST /api/agents/{agent}/executions`).
 * Detalhes do agente e histórico paginado (`GET /api/agents/{agent}/executions`).
-* Interface React + TypeScript com feedback visual de loading, erros, empty state e retry.
+* Interface React + TypeScript responsiva (Mobile e Desktop) com feedback visual de loading, erros, empty state e retry.
+* Acessibilidade básica (labels explícitos, contraste HSL/Slate, navegação por teclado e HTML5 semântico).
+* Otimização de performance no frontend (paginação server-side, retenção de estado global restrito e memoização).
 
 ---
 
@@ -125,7 +141,24 @@ rotik-challenge/
 * **PostgreSQL 16**: Banco de dados relacional forte em ACID, suporte nativo a UUIDs e travamento pessimista seguro (`SELECT ... FOR UPDATE`).
 * **React + Vite + TypeScript**: Interface moderna, rápida, fortemente tipada e com hot reload instantâneo.
 * **Zustand**: Gerenciamento de estado global mínimo e performático **exclusivamente** para a sessão/token de autenticação.
-* **TailwindCSS**: Estilização moderna com utilitários CSS de alta fidelidade e acessibilidade visual.
+* **TailwindCSS v4**: Estilização moderna com utilitários CSS de alta fidelidade, responsividade fluida e acessibilidade visual.
+
+### 9.1. Frontend: Responsividade (Mobile & Desktop)
+A interface foi construída seguindo uma abordagem **Mobile-First** com o TailwindCSS v4:
+* Layouts em Grid dinâmico que transitam suavemente de 1 coluna em telas móbile (`grid-cols-1`) para 2 ou 3 colunas em tablets e desktops (`md:grid-cols-2 lg:grid-cols-3`).
+* Barra de navegação responsiva com colapso de elementos em telas estreitas e troca rápida de idioma (🇧🇷 PT / 🇺🇸 EN).
+* Modais de formulário adaptáveis à altura da viewport com scroll interno seguro.
+
+### 9.2. Frontend: Acessibilidade Básica (A11y)
+* **HTML5 Semântico**: Estrutura organizada com `<header>`, `<main>`, `<section>`, `<article>`, `<table>`, `<thead>` e `<tbody>`.
+* **Associação Explícita de Labels**: Todos os campos do formulário de login e cadastro possuem vinculação id-label (`<label htmlFor="...">`).
+* **Contraste de Cores Elevado**: Cores utilitárias HSL/Slate garantem legibilidade (ex: texto `text-slate-900` em fundo claro; badges com fundo suave e texto escuro de alto contraste).
+* **Navegação por Teclado**: Modais possuem suporte a fechamento via tecla `Esc` e elementos clicáveis exibem anéis de foco destacados (`focus:ring-2`).
+
+### 9.3. Frontend: Performance e Otimizações
+* **Gerenciamento de Estado Granular (Zustand)**: O estado global Zustand é restrito unicamente às credenciais de autenticação (`useAuthStore`). Estados de página e formulários são mantidos localmente, evitando *re-renders* em cascata na árvore de componentes.
+* **Paginação de Dados no Servidor**: O histórico de execuções é paginado via API (`GET /api/agents/{agent}/executions?page=N`), evitando sobrecarregar a DOM com milhares de nós HTML.
+* **Memoização de Referências**: Callbacks e carregadores de dados são protegidos com `useCallback` para manter estabilidade de referências entre re-renderizações.
 
 ---
 
@@ -261,16 +294,19 @@ Endereços disponíveis:
 
 ---
 
-## 14. Testes
+## 14. Testes e Qualidade de Código
 
 ```bash
-# Executar suíte de testes backend
+# Executar suíte de testes backend (PHPUnit)
 cd backend && php artisan test
 
-# Executar padronização de código backend
+# Executar linter de padronização backend (Laravel Pint)
 cd backend && ./vendor/bin/pint --test
 
-# Executar build de produção do frontend
+# Executar linter de alta velocidade do frontend (Oxlint)
+cd frontend && npm run lint
+
+# Executar verificação de tipos e build de produção do frontend
 cd frontend && npm run build
 ```
 
@@ -279,8 +315,8 @@ cd frontend && npm run build
 ## 15. Integração Contínua (CI)
 
 O workflow do **GitHub Actions** em `.github/workflows/ci.yml` valida:
-* **Backend**: Instalação de dependências em `backend/`, verificação Pint e suíte de 18 testes automatizados contra banco PostgreSQL.
-* **Frontend**: Instalação em `frontend/`, verificação de tipos e build Vite.
+* **Backend**: Instalação de dependências em `backend/`, verificação de estilo com Laravel Pint e suíte de 18 testes automatizados contra banco PostgreSQL.
+* **Frontend**: Instalação em `frontend/`, análise estática com Oxlint (`npm run lint`), checagem de tipos TypeScript (`tsc -b`) e build de produção Vite (`npm run build`).
 
 ---
 
