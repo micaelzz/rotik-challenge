@@ -40,7 +40,7 @@ Na ausência de esclarecimentos adicionais, foram estabelecidas 7 premissas fund
    * **Assumption**: Qualquer tentativa de acessar ou executar um agente pertencente a outro cliente retorna `HTTP 404` (`RESOURCE_NOT_FOUND`) em vez de `HTTP 403`, garantindo isolamento multitenant total sem vazamento de metadados.
 
 7. **Pergunta 7 (Exclusão de agentes)**: *A funcionalidade de exclusão de agentes deve estar presente no MVP?*
-   * **Assumption**: A exclusão de agentes foi considerada fora do escopo do MVP para evitar complexidades de integridade referencial com o histórico de execuções e agregados mensais.
+   * **Assumption**: A exclusão de agentes foi deixada fora do escopo do MVP. Tecnicamente, a abordagem ideal seria o uso de **Soft Delete (`deleted_at`)** para preservar a integridade referencial das tabelas `executions` e `agent_monthly_usages`. No entanto, no MVP optou-se por focar estritamente na criação e no monitoramento de consumo, evitando também regras complexas de produto como o reuso de quota por recriação de agentes no mesmo mês.
 
 ---
 
