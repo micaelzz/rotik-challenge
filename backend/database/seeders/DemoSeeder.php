@@ -19,6 +19,11 @@ class DemoSeeder extends Seeder
 {
     public function run(): void
     {
+        // Skip seeding if demo user already exists (idempotent seeder)
+        if (User::where('email', 'demo@rotik.com')->exists()) {
+            return;
+        }
+
         // 1. Create Plan
         $plan = Plan::create([
             'name' => 'PRO',
