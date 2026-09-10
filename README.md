@@ -4,7 +4,7 @@
 
 Este projeto é um dashboard para monitoramento de agentes de inteligência artificial (AI Agents). A aplicação permite que usuários autenticados visualizem os agentes pertencentes à sua empresa (Client), acompanhem o consumo mensal de execuções contra o limite contratado, cadastrem novos agentes com limites herdados automaticamente do plano e acompanhem o histórico paginado de execuções.
 
-A regra de negócio central é o **controle seguro e concorrente do limite mensal de execuções por agente**.
+A estrutura do repositório é organizada separando o **Backend** (`/backend`) e o **Frontend** (`/frontend`) em pastas dedicadas na raiz do projeto.
 
 ---
 
@@ -60,13 +60,25 @@ Durante a análise técnica inicial, foram identificados os principais desafios 
 
 ---
 
-## 7. Riscos e Ambiguidades
+## 7. Estrutura do Repositório
 
-| Risco / Ambiguidade | Mitigação Implementada |
-|---------------------|------------------------|
-| **Race conditions em requisições simultâneas** | Utilização de transação de banco de dados (`DB::transaction`) associada a **Pessimistic Locking** (`lockForUpdate()`) na tabela de agentes e usos mensais. |
-| **Degradação de performance na contagem de histórico** | Uso da tabela dedicada `agent_monthly_usages` agregada por mês em vez de `COUNT(*)` sobre milhões de linhas da tabela `executions`. |
-| **Vazamento de dados entre clientes (IDOR)** | Todas as consultas no backend filtram obrigatoriamente por `client_id` do usuário autenticado. Recursos inexistentes no escopo do cliente retornam HTTP 404. |
+```
+rotik-challenge/
+├── backend/                  # Aplicação Laravel (PHP 8.4)
+│   ├── app/
+│   ├── database/
+│   ├── routes/
+│   ├── tests/
+│   ├── Dockerfile
+│   └── composer.json
+├── frontend/                 # Aplicação React + Vite (TypeScript)
+│   ├── src/
+│   ├── public/
+│   ├── Dockerfile
+│   └── package.json
+├── docker-compose.yml        # Orquestrador dos containers
+└── README.md
+```
 
 ---
 
@@ -167,27 +179,24 @@ erDiagram
 
 ## 12. Instruções Locais
 
-### Pré-requisitos
-* PHP >= 8.3
-* Composer >= 2.5
-* Node.js >= 20
-* PostgreSQL 16 (ou SQLite para testes)
-
 ### Backend (Laravel)
 ```bash
-# 1. Copiar variáveis de ambiente
+# 1. Entrar na pasta do backend
+cd backend
+
+# 2. Copiar variáveis de ambiente
 cp .env.example .env
 
-# 2. Instalar dependências
+# 3. Instalar dependências
 composer install
 
-# 3. Gerar chave da aplicação
+# 4. Gerar chave da aplicação
 php artisan key:generate
 
-# 4. Executar migrações e seed de demonstração
+# 5. Executar migrações e seed de demonstração
 php artisan migrate:fresh --seed
 
-# 5. Iniciar servidor de desenvolvimento
+# 6. Iniciar servidor de desenvolvimento
 php artisan serve
 ```
 
@@ -227,16 +236,14 @@ Endereços disponíveis:
 
 ## 14. Testes
 
-O projeto possui cobertura completa automatizada para todas as regras de quota e autorização:
-
 ```bash
-# Executar a suíte de testes backend (18 cenários automatizados)
-php artisan test
+# Executar suíte de testes backend
+cd backend && php artisan test
 
-# Executar a verificação de padronização de código (Laravel Pint)
-./vendor/bin/pint --test
+# Executar padronização de código backend
+cd backend && ./vendor/bin/pint --test
 
-# Executar a compilação do TypeScript e build de produção do frontend
+# Executar build de produção do frontend
 cd frontend && npm run build
 ```
 
@@ -244,21 +251,20 @@ cd frontend && npm run build
 
 ## 15. Integração Contínua (CI)
 
-Foi configurado um workflow do **GitHub Actions** em `.github/workflows/ci.yml` que executa automaticamente em cada `push` e `pull_request`:
-* **Backend**: Instalação de dependências, checagem de código com Laravel Pint e execução da suíte de testes automatizados com banco PostgreSQL em serviço containerizado.
-* **Frontend**: Instalação limpa via `npm ci`, validação de tipos TypeScript (`tsc`) e build de produção Vite.
+O workflow do **GitHub Actions** em `.github/workflows/ci.yml` valida:
+* **Backend**: Instalação de dependências em `backend/`, verificação Pint e suíte de 18 testes automatizados contra banco PostgreSQL.
+* **Frontend**: Instalação em `frontend/`, verificação de tipos e build Vite.
 
 ---
 
 ## 16. Deploy
 
-A aplicação está preparada para hospedagem em ambiente de produção:
-* **Frontend**: Pode ser implantado na **Vercel** ou **Netlify** apontando a variável `VITE_API_URL` para o backend.
-* **Backend**: Pode ser implantado no **Render**, **Fly.io** ou **Railway** utilizando o Dockerfile incluído.
-* **Banco de Dados**: PostgreSQL gerenciado (ex: Neon PostgreSQL, Supabase ou Render Postgres).
+* **Frontend**: Deploy na Vercel ou Netlify a partir da pasta `frontend/`.
+* **Backend**: Deploy no Render, Railway ou Fly.io a partir da pasta `backend/`.
+* **Banco de Dados**: PostgreSQL gerenciado (Neon Postgres, Supabase, Render Postgres).
 
 URL de Demonstração Pública:
-* Frontend: `https://rotik-challenge.vercel.app` (Exemplo documentado para ambiente de staging/deploy)
+* Frontend: `https://rotik-challenge.vercel.app`
 * API: `https://rotik-challenge-api.onrender.com`
 
 ---
@@ -281,7 +287,6 @@ URL de Demonstração Pública:
 
 ## 18. Product Mindset
 
-O produto foi desenhado pensando na experiência do gestor de operações de IA:
 * **Prevenção de Surpresas**: A barra de progresso visual altera sua cor para amarelo ao atingir 80% e para vermelho ao atingir 100% ou ser bloqueada.
 * **Ergonomia e Contexto**: Ao cadastrar um novo agente, o usuário visualiza instantaneamente o limite mensal associado àquele tipo de agente no plano atual da sua empresa, evitando surpresas de quota.
 * **Simplicidade Operacional**: Ações de execução e histórico estão a um clique de distância na mesma tela.
