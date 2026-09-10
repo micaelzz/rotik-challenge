@@ -1,0 +1,73 @@
+{
+  "common": {
+    "appName": "Rotik Monitor",
+    "dashboard": "Dashboard",
+    "logout": "Sair",
+    "loading": "Carregando...",
+    "tryAgain": "Tentar Novamente",
+    "cancel": "Cancelar",
+    "execute": "Executar",
+    "executing": "Executando...",
+    "active": "ATIVO",
+    "blocked": "BLOQUEADO",
+    "success": "SUCESSO",
+    "failed": "FALHA",
+    "previous": "Anterior",
+    "next": "Próximo",
+    "page": "Página {{current}} de {{last}}",
+    "showingResults": "Exibindo {{from}} a {{to}} de {{total}} execuções"
+  },
+  "auth": {
+    "title": "Rotik AI Monitor",
+    "subtitle": "Faça login para gerenciar e monitorar cotas de execução de agentes de IA",
+    "emailLabel": "Endereço de E-mail",
+    "emailPlaceholder": "nome@empresa.com",
+    "passwordLabel": "Senha",
+    "signIn": "Entrar",
+    "signingIn": "Entrando...",
+    "demoCredentials": "Conta de Demonstração: {{email}} / {{password}}"
+  },
+  "dashboard": {
+    "title": "Visão Geral dos Agentes de IA",
+    "subtitle": "Monitore limites mensais de execução, métricas de consumo e status dos agentes em tempo real",
+    "createAgentBtn": "Criar Agente",
+    "fetchingAgents": "Buscando seus agentes de IA...",
+    "emptyTitle": "Nenhum Agente de IA Encontrado",
+    "emptyDesc": "Comece criando seu primeiro agente de IA. A cota mensal de execução será configurada automaticamente com base no plano do cliente.",
+    "executedSuccess": "Agente executado com sucesso!",
+    "executedError": "Falha ao executar o agente."
+  },
+  "agentCard": {
+    "monthlyUsage": "Consumo Mensal",
+    "viewHistory": "Ver Histórico",
+    "blockedTooltip": "Agente bloqueado (limite atingido)"
+  },
+  "createAgent": {
+    "modalTitle": "Criar Novo Agente",
+    "nameLabel": "Nome do Agente",
+    "namePlaceholder": "ex: Robô de Suporte Alpha",
+    "typeLabel": "Tipo de Agente",
+    "noTypes": "Nenhum tipo de agente disponível no plano atual.",
+    "typeLimitInfo": "O limite de execuções para este tipo é configurado automaticamente pelo seu plano: {{limit}} execuções/mês",
+    "submitBtn": "Criar Agente",
+    "submittingBtn": "Criando...",
+    "errorName": "Por favor, informe o nome do agente.",
+    "errorType": "Por favor, selecione um tipo de agente."
+  },
+  "agentDetails": {
+    "breadcrumbDashboard": "Dashboard",
+    "loadingDetails": "Carregando detalhes do agente...",
+    "notFoundTitle": "Agente Não Encontrado",
+    "notFoundDesc": "O agente solicitado não foi encontrado ou você não tem permissão para visualizá-lo.",
+    "backToDashboard": "← Voltar ao Dashboard",
+    "idLabel": "ID:",
+    "monthlyUsage": "Consumo Mensal",
+    "executeBtn": "Executar Agente",
+    "executionHistory": "Histórico de Execuções",
+    "emptyHistoryTitle": "Nenhuma Execução Registrada",
+    "emptyHistoryDesc": "Este agente ainda não executou nenhuma tarefa. Clique em 'Executar Agente' acima para rodar a primeira execução.",
+    "tableId": "ID da Execução",
+    "tableExecutedAt": "Executado em",
+    "tableStatus": "Status"
+  }
+}

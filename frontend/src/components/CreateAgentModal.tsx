@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { AvailableType } from '../types/api';
 
 interface CreateAgentModalProps {
@@ -16,6 +17,7 @@ export const CreateAgentModal: React.FC<CreateAgentModalProps> = ({
   availableTypes,
   isLoadingTypes,
 }) => {
+  const { t } = useTranslation();
   const [name, setName] = useState('');
   const [type, setType] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -42,11 +44,11 @@ export const CreateAgentModal: React.FC<CreateAgentModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
-      setError('Please provide an agent name.');
+      setError(t('createAgent.errorName'));
       return;
     }
     if (!type) {
-      setError('Please select an agent type.');
+      setError(t('createAgent.errorType'));
       return;
     }
 
@@ -81,7 +83,7 @@ export const CreateAgentModal: React.FC<CreateAgentModalProps> = ({
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-slate-800 pb-4">
           <h2 id="modal-title" className="text-xl font-bold text-white">
-            Create New Agent
+            {t('createAgent.modalTitle')}
           </h2>
           <button
             onClick={onClose}
@@ -105,14 +107,14 @@ export const CreateAgentModal: React.FC<CreateAgentModalProps> = ({
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label htmlFor="agent-name" className="block text-sm font-medium text-slate-300 mb-1.5">
-              Agent Name
+              {t('createAgent.nameLabel')}
             </label>
             <input
               id="agent-name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Support Bot Alpha"
+              placeholder={t('createAgent.namePlaceholder')}
               disabled={isSubmitting}
               className="w-full px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:opacity-50"
               required
@@ -121,12 +123,12 @@ export const CreateAgentModal: React.FC<CreateAgentModalProps> = ({
 
           <div>
             <label htmlFor="agent-type" className="block text-sm font-medium text-slate-300 mb-1.5">
-              Agent Type
+              {t('createAgent.typeLabel')}
             </label>
             {isLoadingTypes ? (
               <div className="h-10 rounded-xl bg-slate-800 animate-pulse border border-slate-700" />
             ) : availableTypes.length === 0 ? (
-              <p className="text-sm text-amber-400">No agent types available in your current plan.</p>
+              <p className="text-sm text-amber-400">{t('createAgent.noTypes')}</p>
             ) : (
               <select
                 id="agent-type"
@@ -137,7 +139,7 @@ export const CreateAgentModal: React.FC<CreateAgentModalProps> = ({
               >
                 {availableTypes.map((item) => (
                   <option key={item.type} value={item.type}>
-                    {item.type} ({item.monthlyExecutionLimit.toLocaleString()} monthly limit)
+                    {item.type} ({item.monthlyExecutionLimit.toLocaleString()})
                   </option>
                 ))}
               </select>
@@ -147,7 +149,7 @@ export const CreateAgentModal: React.FC<CreateAgentModalProps> = ({
                 <svg className="w-4 h-4 text-indigo-400 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                Execution limit for this type is configured automatically by your plan: <strong className="text-slate-200 ml-1">{selectedTypeInfo.monthlyExecutionLimit.toLocaleString()} executions/month</strong>
+                {t('createAgent.typeLimitInfo', { limit: selectedTypeInfo.monthlyExecutionLimit.toLocaleString() })}
               </p>
             )}
           </div>
@@ -160,7 +162,7 @@ export const CreateAgentModal: React.FC<CreateAgentModalProps> = ({
               disabled={isSubmitting}
               className="px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium transition-colors disabled:opacity-50"
             >
-              Cancel
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
@@ -170,10 +172,10 @@ export const CreateAgentModal: React.FC<CreateAgentModalProps> = ({
               {isSubmitting ? (
                 <>
                   <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>Creating...</span>
+                  <span>{t('createAgent.submittingBtn')}</span>
                 </>
               ) : (
-                <span>Create Agent</span>
+                <span>{t('createAgent.submitBtn')}</span>
               )}
             </button>
           </div>

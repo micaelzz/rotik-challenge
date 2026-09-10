@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { request, ApiError } from '../api/client';
 import { useAuthStore } from '../stores/authStore';
 import type { AuthData } from '../types/api';
@@ -12,6 +13,7 @@ export const Login: React.FC = () => {
 
   const setAuth = useAuthStore((state) => state.setAuth);
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,8 +41,36 @@ export const Login: React.FC = () => {
     }
   };
 
+  const changeLanguage = (lng: string) => {
+    i18n.changeLanguage(lng);
+  };
+
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4 selection:bg-indigo-500 selection:text-white">
+    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 selection:bg-indigo-500 selection:text-white relative">
+      {/* Top Language Selector */}
+      <div className="absolute top-6 right-6 flex items-center bg-slate-900 border border-slate-800 rounded-xl p-1 space-x-1 text-xs font-medium">
+        <button
+          onClick={() => changeLanguage('pt-BR')}
+          className={`px-3 py-1.5 rounded-lg transition-all ${
+            i18n.language.startsWith('pt')
+              ? 'bg-indigo-600 text-white shadow-sm font-semibold'
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          🇧🇷 PT-BR
+        </button>
+        <button
+          onClick={() => changeLanguage('en')}
+          className={`px-3 py-1.5 rounded-lg transition-all ${
+            i18n.language.startsWith('en')
+              ? 'bg-indigo-600 text-white shadow-sm font-semibold'
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          🇺🇸 EN
+        </button>
+      </div>
+
       <div className="w-full max-w-md space-y-8">
         {/* Brand Header */}
         <div className="text-center space-y-2">
@@ -50,10 +80,10 @@ export const Login: React.FC = () => {
             </svg>
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight text-white">
-            Rotik AI Monitor
+            {t('auth.title')}
           </h1>
           <p className="text-sm text-slate-400">
-            Sign in to manage and monitor your AI agent execution quotas
+            {t('auth.subtitle')}
           </p>
         </div>
 
@@ -71,7 +101,7 @@ export const Login: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label htmlFor="login-email" className="block text-sm font-medium text-slate-300 mb-1.5">
-                Email Address
+                {t('auth.emailLabel')}
               </label>
               <input
                 id="login-email"
@@ -79,7 +109,7 @@ export const Login: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isSubmitting}
-                placeholder="name@company.com"
+                placeholder={t('auth.emailPlaceholder')}
                 required
                 className="w-full px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:opacity-50"
               />
@@ -87,7 +117,7 @@ export const Login: React.FC = () => {
 
             <div>
               <label htmlFor="login-password" className="block text-sm font-medium text-slate-300 mb-1.5">
-                Password
+                {t('auth.passwordLabel')}
               </label>
               <input
                 id="login-password"
@@ -109,10 +139,10 @@ export const Login: React.FC = () => {
               {isSubmitting ? (
                 <>
                   <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>Signing in...</span>
+                  <span>{t('auth.signingIn')}</span>
                 </>
               ) : (
-                <span>Sign In</span>
+                <span>{t('auth.signIn')}</span>
               )}
             </button>
           </form>
@@ -120,7 +150,7 @@ export const Login: React.FC = () => {
           {/* Quick Demo Credentials hint */}
           <div className="pt-4 border-t border-slate-800 text-center">
             <p className="text-xs text-slate-500 font-mono">
-              Demo Account: <span className="text-slate-300">demo@rotik.com</span> / <span className="text-slate-300">password</span>
+              {t('auth.demoCredentials', { email: 'demo@rotik.com', password: 'password' })}
             </p>
           </div>
         </div>

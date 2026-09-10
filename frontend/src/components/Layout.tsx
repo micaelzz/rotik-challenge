@@ -1,15 +1,21 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../stores/authStore';
 
 export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
 
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  const changeLanguage = (lng: string) => {
+    i18n.changeLanguage(lng);
   };
 
   return (
@@ -25,33 +31,61 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
             </div>
             <div className="flex flex-col">
               <span className="font-bold text-lg tracking-tight text-white group-hover:text-indigo-300 transition-colors">
-                Rotik Monitor
+                {t('common.appName')}
               </span>
               <span className="text-[10px] uppercase font-mono tracking-widest text-slate-400 -mt-1">
-                Agent Dashboard
+                {t('common.dashboard')}
               </span>
             </div>
           </Link>
 
-          {/* User info + Logout */}
-          {user && (
-            <div className="flex items-center space-x-4">
-              <div className="hidden sm:flex flex-col items-end">
-                <span className="text-sm font-semibold text-white">{user.name}</span>
-                <span className="text-xs font-mono text-slate-400">{user.email}</span>
-              </div>
+          {/* Right Actions: Language Switcher + User Info + Logout */}
+          <div className="flex items-center space-x-4">
+            {/* Language Switcher Button */}
+            <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-1 space-x-1 text-xs font-medium">
               <button
-                onClick={handleLogout}
-                className="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-800 transition-all focus:outline-none focus:ring-2 focus:ring-slate-500 flex items-center space-x-1.5"
-                title="Sign out of your account"
+                onClick={() => changeLanguage('pt-BR')}
+                className={`px-2.5 py-1 rounded-lg transition-all ${
+                  i18n.language.startsWith('pt')
+                    ? 'bg-indigo-600 text-white shadow-sm font-semibold'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+                title="Português (Brasil)"
               >
-                <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                <span>Logout</span>
+                🇧🇷 PT
+              </button>
+              <button
+                onClick={() => changeLanguage('en')}
+                className={`px-2.5 py-1 rounded-lg transition-all ${
+                  i18n.language.startsWith('en')
+                    ? 'bg-indigo-600 text-white shadow-sm font-semibold'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+                title="English"
+              >
+                🇺🇸 EN
               </button>
             </div>
-          )}
+
+            {user && (
+              <>
+                <div className="hidden sm:flex flex-col items-end">
+                  <span className="text-sm font-semibold text-white">{user.name}</span>
+                  <span className="text-xs font-mono text-slate-400">{user.email}</span>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-800 transition-all focus:outline-none focus:ring-2 focus:ring-slate-500 flex items-center space-x-1.5"
+                  title={t('common.logout')}
+                >
+                  <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  <span>{t('common.logout')}</span>
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </header>
 

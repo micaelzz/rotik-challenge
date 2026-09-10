@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import type { PaginationMeta } from '../types/api';
 
 interface PaginationProps {
@@ -8,7 +9,11 @@ interface PaginationProps {
 }
 
 export const Pagination: React.FC<PaginationProps> = ({ meta, onPageChange, isSubmitting }) => {
+  const { t } = useTranslation();
   if (meta.last_page <= 1) return null;
+
+  const from = ((meta.current_page - 1) * meta.per_page) + 1;
+  const to = Math.min(meta.current_page * meta.per_page, meta.total);
 
   return (
     <nav className="flex items-center justify-between border-t border-slate-800 px-4 py-3 sm:px-6" aria-label="Pagination Navigation">
@@ -18,23 +23,21 @@ export const Pagination: React.FC<PaginationProps> = ({ meta, onPageChange, isSu
           disabled={meta.current_page <= 1 || isSubmitting}
           className="relative inline-flex items-center rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-medium text-slate-200 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Previous
+          {t('common.previous')}
         </button>
         <button
           onClick={() => onPageChange(meta.current_page + 1)}
           disabled={meta.current_page >= meta.last_page || isSubmitting}
           className="relative ml-3 inline-flex items-center rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-medium text-slate-200 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Next
+          {t('common.next')}
         </button>
       </div>
 
       <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
         <div>
           <p className="text-sm text-slate-400">
-            Showing <span className="font-medium text-white">{((meta.current_page - 1) * meta.per_page) + 1}</span> to{' '}
-            <span className="font-medium text-white">{Math.min(meta.current_page * meta.per_page, meta.total)}</span> of{' '}
-            <span className="font-medium text-white">{meta.total}</span> executions
+            {t('common.showingResults', { from, to, total: meta.total })}
           </p>
         </div>
         <div>
@@ -45,10 +48,10 @@ export const Pagination: React.FC<PaginationProps> = ({ meta, onPageChange, isSu
               className="relative inline-flex items-center rounded-lg px-3 py-1.5 text-sm font-medium text-slate-300 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed"
               aria-label="Previous Page"
             >
-              ← Previous
+              ← {t('common.previous')}
             </button>
             <span className="inline-flex items-center px-4 py-1.5 text-sm font-semibold text-indigo-400">
-              Page {meta.current_page} of {meta.last_page}
+              {t('common.page', { current: meta.current_page, last: meta.last_page })}
             </span>
             <button
               onClick={() => onPageChange(meta.current_page + 1)}
@@ -56,7 +59,7 @@ export const Pagination: React.FC<PaginationProps> = ({ meta, onPageChange, isSu
               className="relative inline-flex items-center rounded-lg px-3 py-1.5 text-sm font-medium text-slate-300 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed"
               aria-label="Next Page"
             >
-              Next →
+              {t('common.next')} →
             </button>
           </div>
         </div>

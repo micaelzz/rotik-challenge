@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Layout } from '../components/Layout';
 import { AgentCard } from '../components/AgentCard';
 import { CreateAgentModal } from '../components/CreateAgentModal';
@@ -12,6 +13,7 @@ import { ApiError } from '../api/client';
 
 export const Dashboard: React.FC = () => {
   const token = useAuthStore((state) => state.token);
+  const { t } = useTranslation();
   const [agents, setAgents] = useState<Agent[]>([]);
   const [availableTypes, setAvailableTypes] = useState<AvailableType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -79,7 +81,7 @@ export const Dashboard: React.FC = () => {
       await executeAgent(token, agentId);
       setExecutionNotification({
         type: 'success',
-        message: 'Agent executed successfully!',
+        message: t('dashboard.executedSuccess'),
       });
       // Refresh list to show updated monthly usage count and status
       const updated = await fetchAgents(token);
@@ -93,7 +95,7 @@ export const Dashboard: React.FC = () => {
       } else {
         setExecutionNotification({
           type: 'error',
-          message: 'Failed to execute agent.',
+          message: t('dashboard.executedError'),
         });
       }
       // Still refresh list in case agent was blocked
@@ -113,10 +115,10 @@ export const Dashboard: React.FC = () => {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-800 pb-6">
           <div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              AI Agents Overview
+              {t('dashboard.title')}
             </h1>
             <p className="text-sm text-slate-400 mt-1">
-              Monitor monthly execution limits, usage metrics, and agent status in real-time
+              {t('dashboard.subtitle')}
             </p>
           </div>
 
@@ -127,7 +129,7 @@ export const Dashboard: React.FC = () => {
             <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
-            Create Agent
+            {t('dashboard.createAgentBtn')}
           </button>
         </div>
 
@@ -167,14 +169,14 @@ export const Dashboard: React.FC = () => {
 
         {/* Main Content States */}
         {isLoading ? (
-          <LoadingSpinner label="Fetching your AI agents..." />
+          <LoadingSpinner label={t('dashboard.fetchingAgents')} />
         ) : error ? (
           <ErrorState message={error} onRetry={loadData} />
         ) : agents.length === 0 ? (
           <EmptyState
-            title="No AI Agents Found"
-            description="Get started by creating your first AI agent. Its monthly execution quota will automatically be configured based on your client's plan."
-            actionLabel="Create Agent"
+            title={t('dashboard.emptyTitle')}
+            description={t('dashboard.emptyDesc')}
+            actionLabel={t('dashboard.createAgentBtn')}
             onAction={handleOpenModal}
           />
         ) : (

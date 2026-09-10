@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Layout } from '../components/Layout';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { ErrorState } from '../components/ErrorState';
@@ -14,6 +15,7 @@ import { ApiError } from '../api/client';
 export const AgentDetails: React.FC = () => {
   const { agentId } = useParams<{ agentId: string }>();
   const token = useAuthStore((state) => state.token);
+  const { t } = useTranslation();
 
   const [agent, setAgent] = useState<Agent | null>(null);
   const [executions, setExecutions] = useState<Execution[]>([]);
@@ -81,7 +83,7 @@ export const AgentDetails: React.FC = () => {
       await executeAgent(token, agentId);
       setExecutionNotification({
         type: 'success',
-        message: 'Execution completed successfully!',
+        message: t('dashboard.executedSuccess'),
       });
       // Refresh agent stats & execution list
       await loadAgent();
@@ -95,7 +97,7 @@ export const AgentDetails: React.FC = () => {
       } else {
         setExecutionNotification({
           type: 'error',
-          message: 'Execution failed.',
+          message: t('dashboard.executedError'),
         });
       }
       await loadAgent();
@@ -108,7 +110,7 @@ export const AgentDetails: React.FC = () => {
   if (isLoadingAgent) {
     return (
       <Layout>
-        <LoadingSpinner label="Loading agent details..." />
+        <LoadingSpinner label={t('agentDetails.loadingDetails')} />
       </Layout>
     );
   }
@@ -117,13 +119,13 @@ export const AgentDetails: React.FC = () => {
     return (
       <Layout>
         <ErrorState
-          title="Agent Not Found"
-          message={error || 'The requested agent could not be found or you do not have permission to view it.'}
+          title={t('agentDetails.notFoundTitle')}
+          message={error || t('agentDetails.notFoundDesc')}
           onRetry={loadAgent}
         />
         <div className="text-center mt-4">
           <Link to="/dashboard" className="text-indigo-400 hover:text-indigo-300 font-medium text-sm">
-            ← Back to Dashboard
+            {t('agentDetails.backToDashboard')}
           </Link>
         </div>
       </Layout>
@@ -140,7 +142,7 @@ export const AgentDetails: React.FC = () => {
         {/* Navigation Breadcrumb */}
         <div className="flex items-center space-x-2 text-sm text-slate-400">
           <Link to="/dashboard" className="hover:text-white transition-colors">
-            Dashboard
+            {t('agentDetails.breadcrumbDashboard')}
           </Link>
           <span>/</span>
           <span className="text-white font-medium">{agent.name}</span>
@@ -161,17 +163,17 @@ export const AgentDetails: React.FC = () => {
                       : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
                   }`}
                 >
-                  {isBlocked ? '⛔ BLOCKED' : '✓ ACTIVE'}
+                  {isBlocked ? `⛔ ${t('common.blocked')}` : `✓ ${t('common.active')}`}
                 </span>
               </div>
               <h1 className="text-3xl font-extrabold text-white tracking-tight">{agent.name}</h1>
-              <p className="text-xs font-mono text-slate-500">ID: {agent.id}</p>
+              <p className="text-xs font-mono text-slate-500">{t('agentDetails.idLabel')} {agent.id}</p>
             </div>
 
             {/* Quota Stats Box */}
             <div className="bg-slate-950/60 rounded-2xl p-5 border border-slate-800/80 space-y-3 min-w-[280px]">
               <div className="flex justify-between text-xs font-medium">
-                <span className="text-slate-400">Monthly Usage</span>
+                <span className="text-slate-400">{t('agentDetails.monthlyUsage')}</span>
                 <span className="text-slate-200 font-mono">
                   {usageCount.toLocaleString()} / {agent.monthlyExecutionLimit.toLocaleString()} ({percentage}%)
                 </span>
@@ -205,7 +207,7 @@ export const AgentDetails: React.FC = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 )}
-                <span>Execute Agent</span>
+                <span>{t('agentDetails.executeBtn')}</span>
               </button>
             </div>
           </div>
@@ -236,15 +238,15 @@ export const AgentDetails: React.FC = () => {
             <svg className="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span>Execution History</span>
+            <span>{t('agentDetails.executionHistory')}</span>
           </h2>
 
           {isLoadingExecutions ? (
-            <LoadingSpinner label="Loading execution history..." />
+            <LoadingSpinner label={t('common.loading')} />
           ) : executions.length === 0 ? (
             <EmptyState
-              title="No Executions Recorded"
-              description="This agent has not executed any tasks yet. Click 'Execute Agent' above to run its first execution."
+              title={t('agentDetails.emptyHistoryTitle')}
+              description={t('agentDetails.emptyHistoryDesc')}
             />
           ) : (
             <div className="rounded-2xl border border-slate-800 bg-slate-900/60 overflow-hidden shadow-xl">
@@ -252,9 +254,9 @@ export const AgentDetails: React.FC = () => {
                 <table className="w-full text-left text-sm text-slate-300">
                   <thead className="bg-slate-950/80 text-xs uppercase font-mono tracking-wider text-slate-400 border-b border-slate-800">
                     <tr>
-                      <th scope="col" className="px-6 py-4">Execution ID</th>
-                      <th scope="col" className="px-6 py-4">Executed At</th>
-                      <th scope="col" className="px-6 py-4">Status</th>
+                      <th scope="col" className="px-6 py-4">{t('agentDetails.tableId')}</th>
+                      <th scope="col" className="px-6 py-4">{t('agentDetails.tableExecutedAt')}</th>
+                      <th scope="col" className="px-6 py-4">{t('agentDetails.tableStatus')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/60 font-mono">
@@ -274,7 +276,7 @@ export const AgentDetails: React.FC = () => {
                                 : 'bg-red-500/10 text-red-400 border-red-500/30'
                             }`}
                           >
-                            {exec.status === 'SUCCESS' ? '✓ SUCCESS' : '✕ FAILED'}
+                            {exec.status === 'SUCCESS' ? `✓ ${t('common.success')}` : `✕ ${t('common.failed')}`}
                           </span>
                         </td>
                       </tr>

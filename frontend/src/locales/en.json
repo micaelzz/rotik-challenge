@@ -1,0 +1,73 @@
+{
+  "common": {
+    "appName": "Rotik Monitor",
+    "dashboard": "Dashboard",
+    "logout": "Logout",
+    "loading": "Loading...",
+    "tryAgain": "Try Again",
+    "cancel": "Cancel",
+    "execute": "Execute",
+    "executing": "Executing...",
+    "active": "ACTIVE",
+    "blocked": "BLOCKED",
+    "success": "SUCCESS",
+    "failed": "FAILED",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {{current}} of {{last}}",
+    "showingResults": "Showing {{from}} to {{to}} of {{total}} executions"
+  },
+  "auth": {
+    "title": "Rotik AI Monitor",
+    "subtitle": "Sign in to manage and monitor your AI agent execution quotas",
+    "emailLabel": "Email Address",
+    "emailPlaceholder": "name@company.com",
+    "passwordLabel": "Password",
+    "signIn": "Sign In",
+    "signingIn": "Signing in...",
+    "demoCredentials": "Demo Account: {{email}} / {{password}}"
+  },
+  "dashboard": {
+    "title": "AI Agents Overview",
+    "subtitle": "Monitor monthly execution limits, usage metrics, and agent status in real-time",
+    "createAgentBtn": "Create Agent",
+    "fetchingAgents": "Fetching your AI agents...",
+    "emptyTitle": "No AI Agents Found",
+    "emptyDesc": "Get started by creating your first AI agent. Its monthly execution quota will automatically be configured based on your client's plan.",
+    "executedSuccess": "Agent executed successfully!",
+    "executedError": "Failed to execute agent."
+  },
+  "agentCard": {
+    "monthlyUsage": "Monthly Usage",
+    "viewHistory": "View History",
+    "blockedTooltip": "Agent is blocked (limit reached)"
+  },
+  "createAgent": {
+    "modalTitle": "Create New Agent",
+    "nameLabel": "Agent Name",
+    "namePlaceholder": "e.g. Support Bot Alpha",
+    "typeLabel": "Agent Type",
+    "noTypes": "No agent types available in your current plan.",
+    "typeLimitInfo": "Execution limit for this type is configured automatically by your plan: {{limit}} executions/month",
+    "submitBtn": "Create Agent",
+    "submittingBtn": "Creating...",
+    "errorName": "Please provide an agent name.",
+    "errorType": "Please select an agent type."
+  },
+  "agentDetails": {
+    "breadcrumbDashboard": "Dashboard",
+    "loadingDetails": "Loading agent details...",
+    "notFoundTitle": "Agent Not Found",
+    "notFoundDesc": "The requested agent could not be found or you do not have permission to view it.",
+    "backToDashboard": "← Back to Dashboard",
+    "idLabel": "ID:",
+    "monthlyUsage": "Monthly Usage",
+    "executeBtn": "Execute Agent",
+    "executionHistory": "Execution History",
+    "emptyHistoryTitle": "No Executions Recorded",
+    "emptyHistoryDesc": "This agent has not executed any tasks yet. Click 'Execute Agent' above to run its first execution.",
+    "tableId": "Execution ID",
+    "tableExecutedAt": "Executed At",
+    "tableStatus": "Status"
+  }
+}

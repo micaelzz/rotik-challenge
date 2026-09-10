@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import type { Agent } from '../types/api';
 
 interface AgentCardProps {
@@ -9,6 +10,7 @@ interface AgentCardProps {
 }
 
 export const AgentCard: React.FC<AgentCardProps> = ({ agent, onExecute, isExecuting }) => {
+  const { t } = useTranslation();
   const usageCount = agent.currentMonthUsage?.executionCount ?? 0;
   const percentage = agent.currentMonthUsage?.percentage ?? 0;
   const isBlocked = agent.status === 'BLOCKED';
@@ -48,14 +50,14 @@ export const AgentCard: React.FC<AgentCardProps> = ({ agent, onExecute, isExecut
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
                 </svg>
-                <span>BLOCKED</span>
+                <span>{t('common.blocked')}</span>
               </>
             ) : (
               <>
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                <span>ACTIVE</span>
+                <span>{t('common.active')}</span>
               </>
             )}
           </div>
@@ -64,7 +66,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({ agent, onExecute, isExecut
         {/* Usage Progress Bar */}
         <div className="my-5 space-y-2">
           <div className="flex justify-between text-xs font-medium">
-            <span className="text-slate-400">Monthly Usage</span>
+            <span className="text-slate-400">{t('agentCard.monthlyUsage')}</span>
             <span className="text-slate-200 font-mono">
               {usageCount.toLocaleString()} / {agent.monthlyExecutionLimit.toLocaleString()} ({percentage}%)
             </span>
@@ -90,7 +92,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({ agent, onExecute, isExecut
           to={`/agents/${agent.id}`}
           className="flex-1 text-center py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-medium transition-colors border border-slate-700/60 focus:outline-none focus:ring-2 focus:ring-slate-500"
         >
-          View History
+          {t('agentCard.viewHistory')}
         </Link>
 
         {onExecute && (
@@ -102,7 +104,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({ agent, onExecute, isExecut
                 ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-800'
                 : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/20 focus:ring-indigo-400'
             }`}
-            title={isBlocked ? 'Agent is blocked (limit reached)' : 'Execute Agent'}
+            title={isBlocked ? t('agentCard.blockedTooltip') : t('common.execute')}
           >
             {isExecuting ? (
               <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -112,7 +114,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({ agent, onExecute, isExecut
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             )}
-            <span>Execute</span>
+            <span>{t('common.execute')}</span>
           </button>
         )}
       </div>
