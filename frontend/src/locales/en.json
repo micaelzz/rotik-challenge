@@ -15,7 +15,8 @@
     "previous": "Previous",
     "next": "Next",
     "page": "Page {{current}} of {{last}}",
-    "showingResults": "Showing {{from}} to {{to}} of {{total}} executions"
+    "showingResults": "Showing {{from}} to {{to}} of {{total}} executions",
+    "footer": "Rotik AI Agent Monitoring Dashboard • Technical Challenge"
   },
   "auth": {
     "title": "Rotik AI Monitor",

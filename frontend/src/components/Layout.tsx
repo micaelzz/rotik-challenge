@@ -96,7 +96,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
       {/* Footer */}
       <footer className="border-t border-slate-900 bg-slate-950 py-6 text-center text-xs text-slate-500 font-mono">
-        Rotik AI Agent Monitoring Dashboard &bull; Technical Challenge
+        {t('common.footer')}
       </footer>
     </div>
   );

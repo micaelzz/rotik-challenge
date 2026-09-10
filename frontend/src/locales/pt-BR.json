@@ -15,7 +15,8 @@
     "previous": "Anterior",
     "next": "Próximo",
     "page": "Página {{current}} de {{last}}",
-    "showingResults": "Exibindo {{from}} a {{to}} de {{total}} execuções"
+    "showingResults": "Exibindo {{from}} a {{to}} de {{total}} execuções",
+    "footer": "Rotik AI Agent Monitoring Dashboard • Desafio Técnico"
   },
   "auth": {
     "title": "Rotik AI Monitor",
