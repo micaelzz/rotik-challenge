@@ -327,7 +327,8 @@ O workflow do **GitHub Actions** em `.github/workflows/ci.yml` valida:
 * **Banco de Dados**: PostgreSQL gerenciado (Neon Postgres / Render Postgres).
 
 URL de Demonstração Pública:
-* *As URLs de produção serão adicionadas após a publicação final dos serviços.*
+* **Frontend**: `https://rotik-challenge.vercel.app`
+* **API Backend**: `https://rotik-challenge-api.onrender.com`
 
 ---
 
