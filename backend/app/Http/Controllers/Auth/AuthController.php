@@ -19,7 +19,7 @@ class AuthController extends Controller
             return response()->json([
                 'error' => [
                     'code' => 'UNAUTHORIZED',
-                    'message' => 'Invalid credentials.',
+                    'message' => __('Credenciais inválidas.'),
                 ],
             ], 401);
         }

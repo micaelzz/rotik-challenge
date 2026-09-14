@@ -12,7 +12,7 @@ class AgentTypeNotAvailableException extends Exception
         return response()->json([
             'error' => [
                 'code' => 'AGENT_TYPE_NOT_AVAILABLE',
-                'message' => 'The requested agent type is not available in your plan.',
+                'message' => __('O tipo de agente solicitado não está disponível no plano da sua empresa.'),
             ],
         ], 422);
     }

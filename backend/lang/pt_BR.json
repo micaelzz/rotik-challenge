@@ -1,0 +1,10 @@
+{
+  "O limite mensal de execuções deste agente foi atingido.": "O limite mensal de execuções deste agente foi atingido.",
+  "O tipo de agente solicitado não está disponível no plano da sua empresa.": "O tipo de agente solicitado não está disponível no plano da sua empresa.",
+  "Credenciais inválidas.": "Credenciais inválidas.",
+  "Os dados informados são inválidos.": "Os dados informados são inválidos.",
+  "Não autenticado.": "Não autenticado.",
+  "Esta ação não é autorizada.": "Esta ação não é autorizada.",
+  "O recurso solicitado não foi encontrado.": "O recurso solicitado não foi encontrado.",
+  "Ocorreu um erro inesperado no servidor.": "Ocorreu um erro inesperado no servidor."
+}

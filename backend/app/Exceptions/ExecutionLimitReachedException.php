@@ -12,7 +12,7 @@ class ExecutionLimitReachedException extends Exception
         return response()->json([
             'error' => [
                 'code' => 'EXECUTION_LIMIT_REACHED',
-                'message' => 'Monthly execution limit has been reached for this agent.',
+                'message' => __('O limite mensal de execuções deste agente foi atingido.'),
             ],
         ], 429);
     }

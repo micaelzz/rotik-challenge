@@ -32,7 +32,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 return response()->json([
                     'error' => [
                         'code' => 'VALIDATION_ERROR',
-                        'message' => 'The given data was invalid.',
+                        'message' => __('Os dados informados são inválidos.'),
                         'details' => $e->errors(),
                     ],
                 ], 400);
@@ -44,7 +44,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 return response()->json([
                     'error' => [
                         'code' => 'UNAUTHORIZED',
-                        'message' => 'Unauthenticated.',
+                        'message' => __('Não autenticado.'),
                     ],
                 ], 401);
             }
@@ -55,7 +55,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 return response()->json([
                     'error' => [
                         'code' => 'FORBIDDEN',
-                        'message' => 'This action is unauthorized.',
+                        'message' => __('Esta ação não é autorizada.'),
                     ],
                 ], 403);
             }
@@ -66,7 +66,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 return response()->json([
                     'error' => [
                         'code' => 'RESOURCE_NOT_FOUND',
-                        'message' => 'The requested resource was not found.',
+                        'message' => __('O recurso solicitado não foi encontrado.'),
                     ],
                 ], 404);
             }
@@ -83,7 +83,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->render(function (Throwable $e, Request $request) {
             if ($request->is('api/*') || $request->expectsJson()) {
                 $status = method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500;
-                $message = config('app.debug') ? $e->getMessage() : 'An unexpected error occurred.';
+                $message = config('app.debug') ? $e->getMessage() : __('Ocorreu um erro inesperado no servidor.');
 
                 return response()->json([
                     'error' => [
